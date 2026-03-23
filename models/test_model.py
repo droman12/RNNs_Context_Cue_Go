@@ -1,7 +1,7 @@
 from input_target import *
-from hp import *
-from model import *
-from plotting_functions import *
+from models.hp import *
+from models.model import *
+from plotting.plot_trajectories import *
 
 start_color = (1.0, 0.549, 0.0)
 end_color   = (0.392, 0.584, 0.929)

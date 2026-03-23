@@ -2,12 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
 from scipy.interpolate import interp1d
-import torch
-from model import *
-from hp import *
-from plotting_functions import *
+
+from models.model import *
+from models.hp import *
+from plotting.plot_trajectories import *
 import numpy as np
-from sklearn.metrics import r2_score
+
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 
