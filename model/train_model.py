@@ -1,13 +1,13 @@
 import time
 import torch
-from models.model import *
-from plotting_functions import*
+from model.model import *
+from plotting.plot_trajectories import*
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib.colors import Normalize
 from matplotlib.cm     import ScalarMappable
 from torch.utils.tensorboard import SummaryWriter
-from models.hp import *
+from model.hp import *
 import random, numpy as np
 
 def main():

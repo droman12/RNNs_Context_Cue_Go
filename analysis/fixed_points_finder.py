@@ -215,10 +215,7 @@ class CustomFixedPointFinder:
 
         return J_us, s_us
 
-
-# ---------------------------------------------------------------------------
 # Utility
-# ---------------------------------------------------------------------------
 
 def get_state_and_input_at_time(hidden_sequence, inputs, time_step):
     """Extract hidden state and input at a given time step.

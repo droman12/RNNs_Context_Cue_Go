@@ -25,9 +25,8 @@ from scipy.spatial import cKDTree
 from sklearn.decomposition import PCA
 
 
-# ---------------------------------------------------------------------------
 # General utilities
-# ---------------------------------------------------------------------------
+
 
 def to_numpy(x) -> np.ndarray:
     """Convert a torch tensor or array-like to a numpy array.
@@ -87,9 +86,7 @@ def filter_points_near_trajectory(
     return distances <= threshold, distances
 
 
-# ---------------------------------------------------------------------------
 # RNN velocity
-# ---------------------------------------------------------------------------
 
 @torch.no_grad()
 def compute_velocity(
@@ -132,9 +129,7 @@ def compute_velocity(
     return (1.0 - cell.decay) * (a - hidden_states)
 
 
-# ---------------------------------------------------------------------------
 # PCA and grid utilities
-# ---------------------------------------------------------------------------
 
 def fit_pca_with_union_bounds(
     hid_base: np.ndarray,
@@ -227,9 +222,7 @@ def project_trajectory(
     return pca.transform(H)
 
 
-# ---------------------------------------------------------------------------
 # Flow field computation
-# ---------------------------------------------------------------------------
 
 @torch.no_grad()
 def compute_velocity_field(
@@ -337,9 +330,7 @@ def compute_field_delta(
     return X1, X2, U0, V0, S0, U1, V1, S1, dU, dV, dS, np.arccos(cos)
 
 
-# ---------------------------------------------------------------------------
 # Phase binning
-# ---------------------------------------------------------------------------
 
 def phase_binned_inputs(
     inputs,
@@ -411,9 +402,7 @@ def phase_binned_inputs(
     return x_phase, out_bins
 
 
-# ---------------------------------------------------------------------------
 # Trajectory-experienced field change
-# ---------------------------------------------------------------------------
 
 def _build_interpolators(X1, X2, U, V):
     """Build 2-D interpolators for the (U, V) velocity components."""

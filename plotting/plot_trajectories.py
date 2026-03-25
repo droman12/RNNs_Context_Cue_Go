@@ -541,9 +541,8 @@ def plot_speed_vs_produced_time(
     plt.show()
 
 
-# ---------------------------------------------------------------------------
+
 # Eigenvalue and stability plots
-# ---------------------------------------------------------------------------
 
 def plot_eigenvalue_spectra(
     eigs: List[np.ndarray],
@@ -704,3 +703,164 @@ def plot_delta_lambda(
 
     fig.tight_layout()
     return fig, (delta, mean_delta, sem_delta, flip_rate)
+
+
+
+def plot_sub_pca(
+    subspace: np.ndarray,
+    n_dim: int,
+    subspace2: np.ndarray = None,
+    cmap1=DURATION_CMAP,
+    cmap2=plt.cm.Greys
+):
+    U, T, S = subspace.shape
+    if subspace2 is not None:
+        U2, T2, S2 = subspace2.shape
+        if (U2, T2) != (U, T):
+            raise ValueError("subspace2 must have same U and T dimensions as subspace")
+    else:
+        S2 = 0
+    X1 = subspace.transpose(1, 2, 0).reshape(T*S, U)
+    if subspace2 is not None:
+        X2 = subspace2.transpose(1, 2, 0).reshape(T*S2, U)
+    mean1 = X1.mean(axis=0, keepdims=True)
+    C1 = X1 - mean1
+    if subspace2 is not None:
+        C2 = X2 - mean1
+    _, _, Vt = np.linalg.svd(C1, full_matrices=False)
+    pcs = Vt[:n_dim].T   # (U, n_dim)
+
+    Z1_flat = C1 @ pcs   # (T*S, n_dim)
+    if subspace2 is not None:
+        Z2_flat = C2 @ pcs
+
+    Z1 = Z1_flat.reshape(T, S, n_dim)
+    if subspace2 is not None:
+        Z2 = Z2_flat.reshape(T, S2, n_dim)
+    pos1 = np.linspace(0, 1, S)
+    cols1 = cmap1(pos1)
+    if subspace2 is not None:
+        pos2 = np.linspace(0.5, 1, S2)
+        cols2 = cmap2(pos2)
+
+    if n_dim > 2:
+        fig = plt.figure(figsize=(7,5), dpi=300)
+        ax  = fig.add_subplot(111, projection='3d')
+        for s in range(S):
+            traj = Z1[:, s, :]
+            ax.plot(traj[:,0], traj[:,1], traj[:,2],
+                    color=cols1[s], lw=2, alpha=0.8)
+        if subspace2 is not None:
+            for s in range(S):
+                traj = Z1[:, s, :]
+                ax.plot(traj[:,0], traj[:,1], traj[:,2],
+                        color=cols2[s], lw=2, alpha=1.0)
+            for s in range(S2):
+                traj = Z2[:, s, :]
+                ax.plot(traj[:,0], traj[:,1], traj[:,2],
+                        color=cols1[s], lw=2, alpha=1.0)
+        for axis in (ax.xaxis, ax.yaxis, ax.zaxis):
+            axis.set_pane_color((1,1,1,0))
+            axis._axinfo['grid']['color'] = (1,1,1,0)
+        ax.set_xticks([]); ax.set_yticks([]); ax.set_zticks([])
+        ax.set_xlabel('PC1'); ax.set_ylabel('PC2'); ax.set_zlabel('PC3')
+        ax.view_init(elev=-30, azim=75)
+
+    else:
+        fig, ax = plt.subplots(figsize=(7,5), dpi=300)
+        for s in range(S):
+            ax.plot(np.arange(T), Z1[:, s, 0],
+                    color=cols1[s], lw=2, alpha=0.8)
+           
+        if subspace2 is not None:
+            for s in range(S):
+                ax.plot(np.arange(T), Z1[:, s, 0],
+                        color=cols2[s], lw=2, alpha=1.0)
+            for s in range(S2):
+                ax.plot(np.arange(T), Z2[:, s, 0],
+                        color=cols1[s], lw=2,
+                        alpha=1.0)
+        ax.set_xlabel('Time'); ax.set_ylabel('PC1')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+              
+        fig, ax = plt.subplots(figsize=(7,5), dpi=300)
+        for s in range(S):
+            ax.plot(Z1[:,s, 0], Z1[:, s, 1], color = cols1[s], lw = 2, alpha = 0.8)
+        if subspace2 is not None:
+            for s in range(S):
+                ax.plot(Z1[:,s, 0], Z1[:, s, 1], color = cols2[s], lw = 2, alpha = 1.0)
+            for s in range(S2):
+                ax.plot(Z2[:, s, 0], Z2[:, s, 1],
+                        color=cols1[s], lw=2, 
+                        alpha=1.0) 
+        ax.set_xlabel('PC1'); ax.set_ylabel('PC2')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        # ax.set_xticks(ticks)
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_current(*args):
+    # Assign datasets based on number of inputs
+    if len(args) == 3:
+        datasets = [args]
+    elif len(args) == 6:
+        datasets = [args[:3], args[3:6]]
+    else:
+        raise ValueError(f"Expected 3 or 6 arguments, got {len(args)}")
+
+    mean_colors = [
+        ((1.0, 0.549, 0.0), (0.392, 0.584, 0.929)),
+        ((0.5, 0.5, 0.5), (0.0, 0.0, 0.0)),
+    ]
+
+    fig, axes = plt.subplots(3, 1, figsize=(8, 10), sharex=True, dpi=300)
+
+    for idx, (I_time, I_res, I_stim) in enumerate(datasets):
+        T, S = I_stim.shape
+        half = 7
+        start_col, end_col = mean_colors[idx]
+
+        for s in range(S):
+            axes[0].plot(np.arange(T) - 1550, I_time[:, s], color='gray', lw=2, alpha=0.3)
+
+        axes[0].plot(np.arange(T) - 1550, I_time[:, :half].mean(axis=1),
+                     color=start_col, lw=2, linestyle='--')
+        axes[0].plot(np.arange(T) - 1550, I_time[:, half:].mean(axis=1),
+                     color=end_col, lw=2, linestyle='--')
+    axes[0].set_ylabel('Current')
+
+    for idx, (I_time, I_res, I_stim) in enumerate(datasets):
+        T, S = I_stim.shape
+        half = 7
+        start_col, end_col = mean_colors[idx]
+
+        for s in range(S):
+            axes[1].plot(np.arange(T) - 1550, I_res[:, s], color='gray', lw=2, alpha=0.3)
+
+        axes[1].plot(np.arange(T) - 1550, I_res[:, :half].mean(axis=1),
+                     color=start_col, lw=2, linestyle='--')
+        axes[1].plot(np.arange(T) - 1550, I_res[:, half:].mean(axis=1),
+                     color=end_col, lw=2, linestyle='--')
+    axes[1].set_ylabel('Current')
+
+    for idx, (I_time, I_res, I_stim) in enumerate(datasets):
+        T, S = I_stim.shape
+        half = 7
+        start_col, end_col = mean_colors[idx]
+
+        for s in range(S):
+            axes[2].plot(np.arange(T) - 1550, I_stim[:, s], color='gray', lw=2, alpha=0.3)
+
+        axes[2].plot(np.arange(T) - 1550, I_stim[:, :half].mean(axis=1),
+                     color=start_col, lw=2, linestyle='--')
+        axes[2].plot(np.arange(T) - 1550, I_stim[:, half:].mean(axis=1),
+                     color=end_col, lw=2, linestyle='--')
+
+    axes[2].set_xlabel('Time index')
+    axes[2].set_ylabel('Current')
+    plt.tight_layout()
+    plt.show()

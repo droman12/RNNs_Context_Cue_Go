@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
 from scipy.interpolate import interp1d
 
-from models.model import *
-from models.hp import *
+from model.model import *
+from model.hp import *
 from plotting.plot_trajectories import *
 import numpy as np
 
